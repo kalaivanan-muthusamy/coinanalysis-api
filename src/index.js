@@ -2,7 +2,7 @@ const express = require("express");
 const { getMarkets } = require("../utils/get-markets");
 const { strategyTester } = require("../controllers/strategy-tester");
 const app = express();
-const port = 8080;
+const port = process.env.PORT || 80;
 
 app.get("/", (req, res) => {
   res.send("Hello World!!");
