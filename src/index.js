@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require("express");
 const { getMarkets } = require("../utils/get-markets");
 const { strategyTester } = require("../controllers/strategy-tester");
