@@ -1,4 +1,8 @@
-const TARGET_MARKETS = [
+const USDT_MARKETS = [
+  'B-ETH_USDT'
+]
+
+const INR_MARKETS = [
   "I-XRP_INR",
   "I-TRX_INR",
   "I-XLM_INR",
@@ -34,6 +38,8 @@ const TARGET_MARKETS = [
   "I-ADA_INR",
   // "I-CHR_INR"
 ];
+
+const TARGET_MARKETS = [...INR_MARKETS, ...USDT_MARKETS]
 
 module.exports = {
   TARGET_MARKETS
