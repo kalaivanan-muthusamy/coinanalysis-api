@@ -8,21 +8,25 @@ async function getCandleData({
   limit = 1000,
   order = 'ASC'
 }) {
-  const { data } = await axios.get(
-    "https://public.coindcx.com/market_data/candles",
-    {
-      params: {
-        pair,
-        interval,
-        startTime,
-        endTime,
-        limit
+  try {
+    const { data } = await axios.get(
+      "https://public.coindcx.com/market_data/candles",
+      {
+        params: {
+          pair,
+          interval,
+          startTime,
+          endTime,
+          limit
+        }
       }
-    }
-  );
-  return {
-    [pair]: order === 'ASC' ? data.reverse() : data
-  };
+    );
+    return {
+      [pair]: order === 'ASC' ? data.reverse() : data
+    };
+  } catch (err) {
+    console.error(err)
+  }
 }
 
 module.exports = {

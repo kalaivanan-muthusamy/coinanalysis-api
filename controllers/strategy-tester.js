@@ -18,7 +18,13 @@ async function strategyTester(req) {
     endTime = moment(req.query.toDate, "DD-MM-YYYY").endOf("day").valueOf();
   }
 
-  let allCandleData = TARGET_MARKETS.map(async (market) => {
+  let coinsToTest = TARGET_MARKETS;
+  if(req.query?.coins) {
+    const coins = req.query?.coins?.split(",");
+    coinsToTest = coinsToTest.filter(a => coins.includes(a));
+  }
+
+  let allCandleData = coinsToTest.map(async (market) => {
     const candleData = getCandleData({
       pair: market,
       interval: req.query?.interval || "1d",
@@ -41,7 +47,8 @@ async function strategyTester(req) {
   Object.keys(allCandleData).map((market) => {
     const results = candleFlowStrategy({
       candleData: allCandleData[market],
-      buyTarget: req.query.buyTarget || 3
+      buyTarget: req.query.buyTarget || 3,
+      amountToInvest: req.query?.amountToInvest ? parseFloat(req.query?.amountToInvest ) : 10000
     });
     allResults[market] = results;
   });
