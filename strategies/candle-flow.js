@@ -1,28 +1,5 @@
 const moment = require("moment");
 
-const testData = [
-  {
-    open: 100,
-    close: 99,
-    time: 1624924800000
-  },
-  {
-    open: 99,
-    close: 98,
-    time: 1624838400000
-  },
-  {
-    open: 98,
-    close: 97,
-    time: 1624752000000
-  },
-  {
-    open: 97,
-    close: 100,
-    time: 1624752000000
-  }
-];
-
 function candleFlowStrategy({
   candleData = testData,
   amountToInvest = 10000,
@@ -32,45 +9,72 @@ function candleFlowStrategy({
   let redCandleCount = 0;
   let orderDetails = [];
   candleData.map((ohlc, index) => {
-    const open = ohlc.open;
-    const close = ohlc.close;
-    const isRed = close < open;
-    const candleType = isRed ? "RED" : "GREEN";
-    if (candleType === "RED") {
+    const openOrders = orderDetails.filter(a => a.status === 'OPEN');
+    const candleType = ohlc.close < ohlc.open ? 'RED' : 'GREEN';
+    if (candleType === "RED" && openOrders.length === 0) {
       ++redCandleCount;
       if (redCandleCount >= buyTarget) {
         // Buy
-        const assetsCount = accountBalance / ohlc.close;
-
-        // Sell
-        const sellOHLC = candleData?.[index + 1];
-        if (sellOHLC) {
-          const profit = assetsCount * sellOHLC.close - accountBalance;
-          const updatedBalance = accountBalance + profit;
-
-          const orderData = {
-            investedAmount: accountBalance,
-            buyPrice: ohlc.close,
-            buyTime: moment(ohlc.time).format(),
-            sellPrice: sellOHLC.close,
-            sellTime: moment(sellOHLC.time).format(),
-            profit,
-            newBalance: updatedBalance
-          };
-          orderDetails.push(orderData);
-          accountBalance = accountBalance + profit;
+        const amountToBuy = accountBalance;
+        const transactionFee = amountToBuy * 0.001;
+        const actualAmountInvested = amountToBuy - transactionFee;
+        const buyOrder = {
+          buyAmount: ohlc.close,
+          buyTime: moment(ohlc.time).format(),
+          investedAmount: amountToBuy,
+          buyTransactionFee: transactionFee,
+          buyQuantity: actualAmountInvested / ohlc.close,
+          status: "OPEN"
         }
+        accountBalance = 0;
+        orderDetails.push(buyOrder);
       }
-    } else {
+    }
+    else if (candleType === 'GREEN' && openOrders.length > 0) {
       redCandleCount = 0;
+      const targetSellOrderIndex = orderDetails.findIndex(a => a.status === 'OPEN');
+      if (targetSellOrderIndex === -1) return;
+
+      let targetSellOrder = orderDetails[targetSellOrderIndex];
+      const newBalance = targetSellOrder.buyQuantity * ohlc.close;
+      const transactionFee = 0.001 * newBalance;
+      const actualNewBalance = newBalance - transactionFee;
+      const profit = actualNewBalance - targetSellOrder.investedAmount;
+      targetSellOrder = {
+        ...targetSellOrder,
+        status: 'COMPLETED',
+        sellAmount: ohlc.close,
+        sellTransactionFee: transactionFee,
+        sellTime: moment(ohlc.time).format(),
+        newAccountBalance: actualNewBalance,
+        profit: profit,
+        profitPercentage: (profit * 100) / targetSellOrder.investedAmount
+      }
+      orderDetails[targetSellOrderIndex] = targetSellOrder
+      accountBalance = actualNewBalance;
     }
   });
+
+  const completedOrders = orderDetails.filter(a => a.status === 'COMPLETED');
+  const totalTransactions = completedOrders.length;
+  const profitTransactions = completedOrders.filter(a => a.profit > 0);
+  const lossTransactions = completedOrders.filter(a => a.profit < 0);
+  const maxProfitPercentage = Math.max(...profitTransactions.map(a => a.profitPercentage));
+  const maxLossPercentage = Math.min(...lossTransactions.map(a => a.profitPercentage));
+  const totalTransactionsFees = completedOrders.reduce((acc, cur) => acc + (cur.buyTransactionFee + cur.sellTransactionFee), 0)
 
   return {
     investedAmount: amountToInvest,
     newBalance: accountBalance,
     profit: accountBalance - amountToInvest,
-    orderDetails
+    profitPercentage: ((accountBalance - amountToInvest) * 100) / amountToInvest,
+    totalTransactions,
+    profitTransactions: profitTransactions.length,
+    lossTransactions: lossTransactions.length,
+    maxProfitPercentage,
+    maxLossPercentage,
+    totalTransactionsFees,
+    completedOrders
   };
 }
 

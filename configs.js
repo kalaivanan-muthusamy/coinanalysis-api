@@ -1,5 +1,22 @@
 const USDT_MARKETS = [
-  'B-ETH_USDT'
+  "B-XRP_USDT",
+  "B-TRX_USDT",
+  "B-XLM_USDT",
+  "B-BTC_USDT",
+  "B-BNB_USDT",
+  "B-ONE_USDT",
+  "B-ETH_USDT",
+  "B-CHZ_USDT",
+  "B-MATIC_USDT",
+  "B-VET_USDT",
+  "B-ENJ_USDT",
+  "B-DOT_USDT",
+  "B-DOGE_USDT",
+  "B-THETA_USDT",
+  "B-LINK_USDT",
+  "B-UNI_USDT",
+  "B-LTC_USDT",
+  "B-ADA_USDT",
 ]
 
 const INR_MARKETS = [
@@ -39,7 +56,10 @@ const INR_MARKETS = [
   // "I-CHR_INR"
 ];
 
-const TARGET_MARKETS = [...INR_MARKETS, ...USDT_MARKETS]
+const TARGET_MARKETS = [
+  ...INR_MARKETS,
+  ...USDT_MARKETS
+]
 
 module.exports = {
   TARGET_MARKETS

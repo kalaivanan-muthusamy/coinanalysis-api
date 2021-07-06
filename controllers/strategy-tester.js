@@ -19,7 +19,7 @@ async function strategyTester(req) {
   }
 
   let coinsToTest = TARGET_MARKETS;
-  if(req.query?.coins) {
+  if (req.query?.coins) {
     const coins = req.query?.coins?.split(",");
     coinsToTest = coinsToTest.filter(a => coins.includes(a));
   }
@@ -48,7 +48,7 @@ async function strategyTester(req) {
     const results = candleFlowStrategy({
       candleData: allCandleData[market],
       buyTarget: req.query.buyTarget || 3,
-      amountToInvest: req.query?.amountToInvest ? parseFloat(req.query?.amountToInvest ) : 10000
+      amountToInvest: req.query?.amountToInvest ? parseFloat(req.query?.amountToInvest) : 10000
     });
     allResults[market] = results;
   });
@@ -69,7 +69,11 @@ async function strategyTester(req) {
   );
   const totalProfit = newBalance - totalInvestment;
   const totalProfitPercentage =
-    ((newBalance - totalInvestment) / newBalance) * 100;
+    ((newBalance - totalInvestment) * 100 / totalInvestment);
+  const totalTransactions = Object.values(allResults).reduce((acc, cur) => acc + cur.totalTransactions, 0)
+  const profitTransactions = Object.values(allResults).reduce((acc, cur) => acc + cur.profitTransactions, 0)
+  const lossTransactions = Object.values(allResults).reduce((acc, cur) => acc + cur.lossTransactions, 0)
+  const totalTransactionFees = Object.values(allResults).reduce((acc, cur) => acc + cur.totalTransactionsFees, 0)
 
   return {
     startTime: moment(startTime).format(),
@@ -81,6 +85,10 @@ async function strategyTester(req) {
     newBalance,
     totalProfit,
     totalProfitPercentage,
+    totalTransactions,
+    profitTransactions,
+    lossTransactions,
+    totalTransactionFees,
     allResults
   };
 }
