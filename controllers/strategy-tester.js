@@ -14,8 +14,8 @@ async function strategyTester(req) {
       .startOf("day")
       .valueOf();
   }
-  if (req.query?.toDate) {
-    endTime = moment(req.query.toDate, "DD-MM-YYYY").endOf("day").valueOf();
+  if (req.query?.endTime) {
+    endTime = moment(req.query.endTime, "DD-MM-YYYY").endOf("day").valueOf();
   }
 
   let coinsToTest = TARGET_MARKETS;
