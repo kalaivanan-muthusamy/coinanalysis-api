@@ -78,7 +78,7 @@ async function strategyTester(req) {
   return {
     startTime: moment(startTime).format(),
     endTime: moment(endTime).format(),
-    totalMarketCount: TARGET_MARKETS.length,
+    totalMarketCount: coinsToTest.length,
     profitMaretCount,
     lossMarketCount,
     totalInvestment,
