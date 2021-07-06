@@ -9,8 +9,8 @@ async function strategyTester(req) {
     .startOf("day")
     .valueOf();
   let endTime = moment().endOf("day").valueOf();
-  if (req.query?.startDate) {
-    startTime = moment(req.query.startDate, "DD-MM-YYYY")
+  if (req.query?.startTime) {
+    startTime = moment(req.query.startTime, "DD-MM-YYYY")
       .startOf("day")
       .valueOf();
   }
