@@ -1,7 +1,8 @@
+const moment = require("moment");
+const lodash = require('lodash');
 const { TARGET_MARKETS } = require("../configs");
 const { getCandleData } = require("../utils/get-candle-data");
 const { candleFlowStrategy } = require("../strategies/candle-flow");
-const moment = require("moment");
 
 async function strategyTester(req) {
   let startTime = moment()
@@ -74,6 +75,28 @@ async function strategyTester(req) {
   const profitTransactions = Object.values(allResults).reduce((acc, cur) => acc + cur.profitTransactions, 0)
   const lossTransactions = Object.values(allResults).reduce((acc, cur) => acc + cur.lossTransactions, 0)
   const totalTransactionFees = Object.values(allResults).reduce((acc, cur) => acc + cur.totalTransactionsFees, 0)
+  let lossTransactionsByTime = {};
+  let profitTransactionsByTime = {};
+  Object.values(allResults).map(coinResult => {
+    coinResult.completedOrders.map(result => {
+      if (result.profit < 0) {
+        if (lossTransactionsByTime[result.buyTime]) {
+          lossTransactionsByTime[result.buyTime] = lossTransactionsByTime[result.buyTime] + 1;
+        } else {
+          lossTransactionsByTime[result.buyTime] = 1
+        }
+      } else {
+        if (profitTransactionsByTime[result.buyTime]) {
+          profitTransactionsByTime[result.buyTime] = profitTransactionsByTime[result.buyTime] + 1;
+        } else {
+          profitTransactionsByTime[result.buyTime] = 1
+        }
+      }
+    })
+  })
+  // lossTransactionsByTime = sortObjectByValue(lossTransactionsByTime)
+  lossTransactionsByTime = lodash.fromPairs(lodash.sortBy(lodash.toPairs(lossTransactionsByTime), 1).reverse())
+  profitTransactionsByTime = lodash.fromPairs(lodash.sortBy(lodash.toPairs(profitTransactionsByTime), 1).reverse())
 
   return {
     startTime: moment(startTime).format(),
@@ -88,6 +111,8 @@ async function strategyTester(req) {
     totalTransactions,
     profitTransactions,
     lossTransactions,
+    lossTransactionsByTime,
+    profitTransactionsByTime,
     totalTransactionFees,
     allResults
   };
