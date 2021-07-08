@@ -1,7 +1,7 @@
 const moment = require("moment");
 
 function candleFlowStrategy({
-  candleData = testData,
+  candleData,
   amountToInvest = 10000,
   buyTarget = 3
 }) {
@@ -11,8 +11,14 @@ function candleFlowStrategy({
   candleData.map((ohlc, index) => {
     const openOrders = orderDetails.filter(a => a.status === 'OPEN');
     const candleType = ohlc.close < ohlc.open ? 'RED' : 'GREEN';
-    if (candleType === "RED" && openOrders.length === 0) {
+
+    if (candleType === 'RED') {
       ++redCandleCount;
+    } else {
+      redCandleCount = 0;
+    }
+
+    if (candleType === "RED" && openOrders.length === 0) {
       if (redCandleCount >= buyTarget) {
         // Buy
         const amountToBuy = accountBalance;
@@ -21,6 +27,7 @@ function candleFlowStrategy({
         const buyOrder = {
           buyAmount: ohlc.close,
           buyTime: moment(ohlc.time).format(),
+          buyCandle: ohlc,
           investedAmount: amountToBuy,
           buyTransactionFee: transactionFee,
           buyQuantity: actualAmountInvested / ohlc.close,
@@ -31,10 +38,8 @@ function candleFlowStrategy({
       }
     }
     else if (candleType === 'GREEN' && openOrders.length > 0) {
-      redCandleCount = 0;
       const targetSellOrderIndex = orderDetails.findIndex(a => a.status === 'OPEN');
       if (targetSellOrderIndex === -1) return;
-
       let targetSellOrder = orderDetails[targetSellOrderIndex];
       const newBalance = targetSellOrder.buyQuantity * ohlc.close;
       const transactionFee = 0.001 * newBalance;
@@ -46,6 +51,7 @@ function candleFlowStrategy({
         sellAmount: ohlc.close,
         sellTransactionFee: transactionFee,
         sellTime: moment(ohlc.time).format(),
+        sellCandle: ohlc,
         newAccountBalance: actualNewBalance,
         profit: profit,
         profitPercentage: (profit * 100) / targetSellOrder.investedAmount
@@ -54,6 +60,12 @@ function candleFlowStrategy({
       accountBalance = actualNewBalance;
     }
   });
+
+  // Cancel the pending order
+  const pendingOrderIndex = orderDetails.findIndex(a => a.status === 'OPEN');
+  if (pendingOrderIndex !== -1) {
+    accountBalance = accountBalance + orderDetails[pendingOrderIndex].investedAmount;
+  }
 
   const completedOrders = orderDetails.filter(a => a.status === 'COMPLETED');
   const totalTransactions = completedOrders.length;
