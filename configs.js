@@ -26,13 +26,11 @@ const USDT_MARKETS = [
   "B-EOS_USDT",
   "B-ETC_USDT",
   "B-VET_USDT",
-  "B-USDC_USDT",
   "B-LINK_USDT",
   "B-THETA_USDT",
   "B-MATIC_USDT",
   "B-ATOM_USDT",
   "B-DOGE_USDT",
-  "B-BUSD_USDT",
   "B-EUR_USDT",
   "B-SOL_USDT",
   "B-COMP_USDT",
@@ -50,7 +48,6 @@ const USDT_MARKETS = [
   "B-CAKE_USDT",
   "B-ALICE_USDT",
   "B-BAKE_USDT",
-  "B-SHIB_USDT",
   "B-ICP_USDT"
 ]
 
